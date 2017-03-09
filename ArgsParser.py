@@ -14,6 +14,7 @@ def generateArgParsers():
                               dest="isVerbose",
                               action="store_const", const=True, default=False,
                               help="Prints debugging messages.")
+
     parser.add_argument('-p',
                               dest="port",
                               action="store",
@@ -21,11 +22,12 @@ def generateArgParsers():
                               type=int,
                               default=8080,
                               help="Specifies the port number that the server will listen and serve at.")
-    
+
     parser.add_argument('-d',
                               dest="homeDir",
                               action="store",
                               metavar="PATH-TO-DIR",
                               default=".",
                               help="Specifies the directory that the server will use to read/write requested files. Default is the current directory when launching the application.")
+
     return parser
