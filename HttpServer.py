@@ -40,10 +40,15 @@ def handle_client(conn, addr):
                             data = ''.join([data, directory, '\r\n'])
                     else:
                         data = ServerHelper.get_file_content(path)
+                elif verb == 'POST':
+                    print("TODO")
+                
+                data = ServerHelper.build_success_response(data)
+                    
             except OSError:
-                data = ServerHelper.build_error_response(path, 'File does not exists')
+                data = ServerHelper.build_error_response('File does not exists')
             except Exception as error:
-                data = ServerHelper.build_error_response(path, error.args[0])
+                data = ServerHelper.build_error_response(error.args[0])
             finally:
                 print (data)
                 conn.sendall(data.encode())
