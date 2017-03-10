@@ -24,13 +24,12 @@ def handle_client(conn, addr):
     print('New client from', addr)
     try:
         while True:
+            request = conn.recv(1024)
             data = ''
             headers = ServerHelper.extract_header(str(conn.recv(1024)))
             verb = headers[0]
-            print(headers[1])
             path = path + headers[1]
 
-            print(path)
             try:
                 if(verb == 'GET'):
                     if(path[len(path)-1] == '/'):
@@ -50,7 +49,7 @@ def handle_client(conn, addr):
             except Exception as error:
                 data = ServerHelper.build_error_response(error.args[0])
             finally:
-                print (data)
+                print(data)
                 conn.sendall(data.encode())
                 break
     finally:
