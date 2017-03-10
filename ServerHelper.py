@@ -12,17 +12,17 @@ def extract_header(data):
     return headers
 
 def get_file_content(path):
-	f =  open(path, 'r') 
-	data = f.read()
-	f.close()
-	return data
+    f =  open(path, 'r') 
+    data = f.read()
+    f.close()
+    return data
 
 
 def list_directory(path):
-	if(os.path.exists(path)):
-		return os.listdir(path)
-	else:
-		raise Exception('Directory not found')
+    if(os.path.exists(path)):
+        return os.listdir(path)
+    else:
+        raise Exception('Directory not found')
 
 def build_error_response(path, error):
-	return ''.join(['HTTP', path,'1.1', ' 404 ', error, '\r\n'])
+    return ''.join(['HTTP', path,'1.1', ' 404 ', error, '\r\n'])
