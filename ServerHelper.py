@@ -2,14 +2,37 @@ import re
 import os
 from datetime import datetime
 
-def extract_header(data):
+def extract_request(requestLine):
     headers = list()
-    lines = data.split('\\r\\n')
-    matcher = re.search("b'(\w+)\s(\/\w*[\/\w]*(\.\w+)*)", lines[0])
+    matcher = re.search("b'(\w+)\s(\/\w*[\/\w]*(\.\w+)*)", requestLine)
     headers.append(matcher.group(1))
     headers.append(matcher.group(2))
 
     return headers
+
+def extract_body(data):
+    fullRequest = data.split('\\r\\n\\r\\n')
+    print(fullRequest)
+    if len(fullRequest) > 1:
+        return fullRequest[1]
+    return None
+
+def extract_raw_headers(data):
+    return data.split('\\r\\n\\r\\n')[0]
+
+def extract_headers(data):
+    headerBlock = data.split('\\r\\n\\r\\n')
+    headers = headerBlock[0].split('\\r\\n')
+    headerMap = {}
+    
+    for header in headers :
+        headerArr = header.split(":")
+        if len(headerArr) > 1:
+            headerMap[headerArr[0].strip()] = headerArr[1].strip()
+        
+    return headerMap
+    
+    
 
 def get_file_content(path):
     f =  open(path, 'r') 
