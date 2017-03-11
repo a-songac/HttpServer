@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-import os
 import socket
 import threading
 import ArgsParser
@@ -7,6 +6,7 @@ import ServerHelper
 
 CONTENT_LENGTH = "Content-Length"
 BUFF_SIZE = 1024
+HOME_DIR = ''
 
 def run_server(host, port):
     listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -23,24 +23,13 @@ def run_server(host, port):
 
 
 def handle_client(conn, addr):
-    path = os.getcwd()
+    path = HOME_DIR
     print('New client from', addr)
     try:
         clientDataBytes =  conn.recv(BUFF_SIZE)
-        clientData = requestData = str(clientDataBytes)
-        print(clientData)
-        headers = ServerHelper.extract_headers(clientData)
+        requestData = str(clientDataBytes)
         
-        bodyLength = 0
-        if CONTENT_LENGTH in headers :
-            bodyLength = int(headers[CONTENT_LENGTH])
-                             
-        rawHeadersLen = len(ServerHelper.extract_raw_headers(clientData))   
-        print("raw headers str: ", rawHeadersLen)
-        print("body: ", bodyLength)
-        print("full: ", len(clientDataBytes))
         while len(clientDataBytes) >= BUFF_SIZE:
-            print("looping")
             try:
                 clientDataBytes = conn.recv(BUFF_SIZE)
             except socket.timeout:
@@ -65,13 +54,15 @@ def handle_client(conn, addr):
                     data = ServerHelper.get_file_content(path)
             elif verb == 'POST':
                 if body is not None:
-                    print(body)
+                    ServerHelper.write_request_body(path, body)
                     
             
             data = ServerHelper.build_success_response(data)
                 
         except OSError:
-            data = ServerHelper.build_error_response('File does not exists')
+            data = ServerHelper.build_error_response('File or directory does not exists')
+        except IOError:
+            data = ServerHelper.build_error_response('Directory where you want to write file does not exist')
         except Exception as error:
             data = ServerHelper.build_error_response(error.args[0])
         finally:
@@ -83,4 +74,5 @@ def handle_client(conn, addr):
 # Usage python echoserver.py [--port port-number]
 parser = ArgsParser.generateArgParsers()
 args = parser.parse_args()
+HOME_DIR = args.homeDir
 run_server('', args.port)

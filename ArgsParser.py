@@ -5,6 +5,7 @@ Generate Argument Parsers for the server
 '''
 import os
 import argparse
+HOME_DIR = os.getcwd()
 
 def generateArgParsers():
     parser = argparse.ArgumentParser(
@@ -27,7 +28,7 @@ def generateArgParsers():
                               dest="homeDir",
                               action="store",
                               metavar="PATH-TO-DIR",
-                              default=".",
+                              default=HOME_DIR,
                               help="Specifies the directory that the server will use to read/write requested files. Default is the current directory when launching the application.")
 
     return parser

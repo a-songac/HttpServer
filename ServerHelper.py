@@ -60,3 +60,9 @@ def build_success_response(data):
                     'Content-Type: text/html; charset=utf-8\r\n',
                     'Content-Length: ', str(len(data.encode('utf-8'))), '\r\n\r\n',
                     data])
+    
+def write_request_body(path, data):
+    f = open(path, 'w')
+    f.write(data)
+    
+    
