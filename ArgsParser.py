@@ -30,5 +30,9 @@ def generateArgParsers():
                               metavar="PATH-TO-DIR",
                               default=HOME_DIR,
                               help="Specifies the directory that the server will use to read/write requested files. Default is the current directory when launching the application.")
+    parser.add_argument('--delay-writing',
+                              dest="debugMode",
+                              action="store_const", const=True, default=False,
+                              help="Debug mode where writing operation has a delay. Used to test concurrency")
 
     return parser

@@ -3,6 +3,9 @@ import socket
 import ArgsParser
 import ServerHelper
 import threading
+import time
+
+DEBUG = True
 
 CONTENT_LENGTH = "Content-Length"
 BUFF_SIZE = 1024
@@ -67,6 +70,8 @@ def handle_client(conn, addr):
                     try:
                         FILE_WRITE_LOCKS[path].wait()  # block until available
                         FILE_WRITE_LOCKS[path].clear()
+                        if DEBUG:
+                            time.sleep(10)
                         ServerHelper.write_request_body(path, body)
                         FILE_WRITE_LOCKS[path].set()
                     except OSError:
@@ -98,4 +103,5 @@ def handle_client(conn, addr):
 parser = ArgsParser.generateArgParsers()
 args = parser.parse_args()
 HOME_DIR = args.homeDir
+DEBUG = args.debugMode
 run_server('', args.port)
