@@ -69,6 +69,7 @@ def build_success_response(data):
     
 def write_request_body(path, data):
     f = open(path, 'w')
-    f.write(data)
+    f.write(data+'\n')
+    f.close()
     
     

@@ -85,7 +85,10 @@ def handle_client(conn, addr):
             data = ServerHelper.build_success_response(data)
                 
         except OSError:
-            data = ServerHelper.build_error_response('File does not exists or cannot be created')
+            msg = 'File does not exists'
+            if verb == 'POST':
+                msg = "File cannot be created in a directory that does not exist"
+            data = ServerHelper.build_error_response(msg)
         except IOError:
             data = ServerHelper.build_error_response('Directory where you want to write file does not exist')
         except Exception as error:
