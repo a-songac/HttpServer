@@ -4,6 +4,7 @@ import ArgsParser
 import ServerHelper
 import threading
 import time
+import os
 
 DEBUG = True
 
@@ -47,7 +48,7 @@ def handle_client(conn, addr):
         data = ''
         try:
             if(verb == 'GET'):
-                if(path[len(path) - 1] == '/'):
+                if(path[len(path) - 1] == '/' or os.path.isdir(path)):
                     directories = ServerHelper.list_directory(path)
 
                     for directory in directories:         

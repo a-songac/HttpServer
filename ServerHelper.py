@@ -4,7 +4,7 @@ from datetime import datetime
 
 def extract_request(requestLine):
     headers = list()
-    matcher = re.search("(\w+)\s(\/\w*[\/\w]*(\.\w+)*)", requestLine)
+    matcher = re.search("(\w+)\s(\/\w*[\/\w]*(\.\w+\/?)*)", requestLine)
     headers.append(matcher.group(1))
     headers.append(matcher.group(2))
 
@@ -41,8 +41,15 @@ def get_file_content(path):
 
 
 def list_directory(path):
-    if(os.path.exists(path)):
-        return os.listdir(path)
+    if(os.path.isdir(path)):
+        alist= os.listdir(path)
+        finalList = []
+        for i in alist:
+            prepend = 'f'
+            if os.path.isdir(''.join([path, i])) :
+                prepend = 'd'
+            finalList.append(''.join([prepend, ' ', i]))
+        return finalList
     else:
         raise Exception('Directory not found')
 
