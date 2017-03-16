@@ -4,25 +4,24 @@ from datetime import datetime
 
 def extract_request(requestLine):
     headers = list()
-    matcher = re.search("b'(\w+)\s(\/\w*[\/\w]*(\.\w+)*)", requestLine)
+    matcher = re.search("(\w+)\s(\/\w*[\/\w]*(\.\w+)*)", requestLine)
     headers.append(matcher.group(1))
     headers.append(matcher.group(2))
 
     return headers
 
 def extract_body(data):
-    fullRequest = data.split('\\r\\n\\r\\n')
-    print(fullRequest)
+    fullRequest = data.split('\r\n\r\n')
     if len(fullRequest) > 1:
-        return fullRequest[1]
+        return re.sub('\r\n', '', fullRequest[1])
     return None
 
 def extract_raw_headers(data):
     return data.split('\\r\\n\\r\\n')[0]
 
 def extract_headers(data):
-    headerBlock = data.split('\\r\\n\\r\\n')
-    headers = headerBlock[0].split('\\r\\n')
+    headerBlock = data.split('\r\n\r\n')
+    headers = headerBlock[0].split('\r\n')
     headerMap = {}
     
     for header in headers :

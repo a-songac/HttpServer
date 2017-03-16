@@ -21,25 +21,21 @@ def run_server(host, port):
         print('Server is listening at', port)
         while True:
             conn, addr = listener.accept()  # blocked until receives connection request 
-            conn.settimeout(1.0)
             threading.Thread(target=handle_client, args=(conn, addr)).start()
     finally:
         listener.close()
 
 
 def handle_client(conn, addr):
-    path = HOME_DIR
+    path = HOME_DIR # prepend home dir to prevent accessing files elsewhere in system
     print('New client from', addr)
     try:
         clientDataBytes = conn.recv(BUFF_SIZE)
-        requestData = str(clientDataBytes)
+        requestData = clientDataBytes.decode()
         
-        while len(clientDataBytes) >= BUFF_SIZE:
-            try:
-                clientDataBytes = conn.recv(BUFF_SIZE)
-            except socket.timeout:
-                break
-            requestData += str(clientDataBytes)
+        requestData = extractRemainingData(conn, requestData)
+        
+        print(requestData)
         
         requestLine = list()
         requestLine = ServerHelper.extract_request(requestData)
@@ -57,12 +53,11 @@ def handle_client(conn, addr):
                         data = ''.join([data, directory, '\r\n'])
                 else:
                     if path in FILE_WRITE_LOCKS:
-                        FILE_WRITE_LOCKS[path].wait()  # blocks until true (available)
-                        data = ServerHelper.get_file_content(path)
+                        FILE_WRITE_LOCKS[path].wait()  # blocks until available
+                    data = ServerHelper.get_file_content(path)
+                        
             elif verb == 'POST':
                 if body is not None:
-                    
-                    
                     if path not in FILE_WRITE_LOCKS:
                         FILE_WRITE_LOCKS[path] = threading.Event()
                         FILE_WRITE_LOCKS[path].set()  # set available
@@ -74,12 +69,15 @@ def handle_client(conn, addr):
                             time.sleep(10)
                         ServerHelper.write_request_body(path, body)
                         FILE_WRITE_LOCKS[path].set()
+                        
                     except OSError:
                         FILE_WRITE_LOCKS[path].set()
                         del FILE_WRITE_LOCKS[path]
                         raise OSError
                     
-            
+                else:
+                    raise Exception('Body request empty')
+                        
             data = ServerHelper.build_success_response(data)
                 
         except OSError:
@@ -92,12 +90,29 @@ def handle_client(conn, addr):
         finally:
             conn.sendall(data.encode())
             
-                
-                
     finally:
         conn.close()
         
-
+# Fetch the rest of the data in case buffer size was too small
+def extractRemainingData(conn, requestData):
+    headers = ServerHelper.extract_headers(requestData)
+    contentLength = 0
+    if CONTENT_LENGTH in headers :
+        contentLength = int(headers[CONTENT_LENGTH])
+        
+    currentBodyLength = 0
+    currentBody = ServerHelper.extract_body(requestData)
+    if currentBody is not None:
+        currentBodyLength = len(currentBody)
+    
+    while currentBodyLength < contentLength:
+        clientDataBytes = conn.recv(BUFF_SIZE)
+        requestData =  ''.join([requestData, clientDataBytes.decode()])
+        currentBodyLength = len(ServerHelper.extract_body(requestData))
+    
+    return requestData
+        
+        
 
 # Usage python echoserver.py [--port port-number]
 parser = ArgsParser.generateArgParsers()
