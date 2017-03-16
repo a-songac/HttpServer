@@ -46,8 +46,8 @@ def list_directory(path):
     else:
         raise Exception('Directory not found')
 
-def build_error_response(error):
-    return ''.join(['HTTP/1.1 404 ', error, '\r\n',
+def build_error_response(error, status = 404):
+    return ''.join(['HTTP/1.1 ', str(status), ' ', error, '\r\n',
                     'Date: ', datetime.now().strftime("%Y-%m-%d %I:%M:%S %p"), '\r\n',
                     'Content-Type: text/html; charset=utf-8\r\n',
                     'Content-Length: ', str(len(error.encode('utf-8'))), '\r\n\r\n',

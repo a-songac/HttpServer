@@ -10,6 +10,7 @@ DEBUG = True
 CONTENT_LENGTH = "Content-Length"
 BUFF_SIZE = 1024
 HOME_DIR = ''
+RESOURCE_BEING_WRITTEN = "Resource being modified by another user"
 
 FILE_WRITE_LOCKS = {}
 
@@ -53,7 +54,7 @@ def handle_client(conn, addr):
                         data = ''.join([data, directory, '\r\n'])
                 else:
                     if path in FILE_WRITE_LOCKS:
-                        FILE_WRITE_LOCKS[path].wait()  # blocks until available
+                        FILE_WRITE_LOCKS[path].wait()  # blocks until available. Assuming writing is short
                     data = ServerHelper.get_file_content(path)
                         
             elif verb == 'POST':
@@ -63,12 +64,14 @@ def handle_client(conn, addr):
                         FILE_WRITE_LOCKS[path].set()  # set available
                     
                     try:
-                        FILE_WRITE_LOCKS[path].wait()  # block until available
-                        FILE_WRITE_LOCKS[path].clear()
-                        if DEBUG:
-                            time.sleep(10)
-                        ServerHelper.write_request_body(path, body)
-                        FILE_WRITE_LOCKS[path].set()
+                        if FILE_WRITE_LOCKS[path].is_set():
+                            FILE_WRITE_LOCKS[path].clear()
+                            if DEBUG:
+                                time.sleep(10)
+                            ServerHelper.write_request_body(path, body)
+                            FILE_WRITE_LOCKS[path].set()
+                        else:
+                            raise Exception(RESOURCE_BEING_WRITTEN)
                         
                     except OSError:
                         FILE_WRITE_LOCKS[path].set()
@@ -86,7 +89,10 @@ def handle_client(conn, addr):
             data = ServerHelper.build_error_response('Directory where you want to write file does not exist')
         except Exception as error:
             print("error: ", error)
-            data = ServerHelper.build_error_response(error.args[0])
+            if error.args[0] == RESOURCE_BEING_WRITTEN:
+                data = ServerHelper.build_error_response(error.args[0], 401)
+            else:
+                data = ServerHelper.build_error_response(error.args[0])
         finally:
             conn.sendall(data.encode())
             
